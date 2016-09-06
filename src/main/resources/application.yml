@@ -1,0 +1,25 @@
+spring:
+  main:
+    web_environment: false
+
+logging:
+  level:
+    ROOT: WARN
+    org.springframework: INFO
+
+cloud:
+  aws:
+    stack:
+      auto: false
+    credentials:
+      accessKey: {accessKey}
+      secretKey: {secretKey}
+      instanceProfile: true
+    region:
+      auto: false
+      static: us-west-1
+
+app:
+  aws:
+    s3:
+      bucket: makototech.test

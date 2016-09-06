@@ -1,0 +1,33 @@
+plugins {
+    id "io.spring.dependency-management" version "0.6.0.RELEASE"
+}
+
+description = 'POC: Spring Integration AWS Support'
+
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-starter-parent:1.4.0.RELEASE'
+        mavenBom 'org.springframework.cloud:spring-cloud-aws:1.1.1.RELEASE'
+    }
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile 'org.springframework.boot:spring-boot-starter'
+    compile 'org.springframework.cloud:spring-cloud-starter-aws'
+    compile 'org.springframework.integration:spring-integration-aws:1.0.0.RELEASE'
+
+    testCompile 'org.springframework.integration:spring-integration-test'
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testCompile 'junit:junit:4.12'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.0'
+}
