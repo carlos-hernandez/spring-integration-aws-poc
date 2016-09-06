@@ -7,6 +7,7 @@ import com.makototech.huellitasapp.config.S3ConfigurationProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.integration.aws.outbound.S3MessageHandler
 import org.springframework.integration.aws.outbound.S3MessageHandler.Command
+import org.springframework.integration.expression.ValueExpression
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.messaging.Message
 import org.springframework.stereotype.Service
@@ -20,32 +21,47 @@ class S3ServiceImpl implements S3Service {
     @Autowired
     private S3ConfigurationProperties s3ConfigurationProperties
 
-    @Autowired
-    private S3MessageHandler s3MessageHandler
-
     @Override
     void uploadFile(File file) {
-        handleMessage(file, Command.UPLOAD)
+        uploadFile(null, file)
+    }
+
+    @Override
+    void uploadFile(String objectKey, File file) {
+        handleMessage(objectKey, file, Command.UPLOAD)
     }
 
     @Override
     void downloadFile(File file) {
-        handleMessage(file, Command.DOWNLOAD)
+        downloadFile(null, file)
     }
 
     @Override
-    void deleteFile(String filename) {
-        s3Client.deleteObject(new DeleteObjectRequest(s3ConfigurationProperties.bucket, filename))
+    void downloadFile(String objectKey, File file) {
+        handleMessage(objectKey, file, Command.DOWNLOAD)
     }
 
-    private void handleMessage(File file, Command command) {
+    @Override
+    void deleteFile(String objectKey) {
+        s3Client.deleteObject(new DeleteObjectRequest(s3ConfigurationProperties.bucket, objectKey))
+    }
+
+    @Override
+    boolean doesFileExists(String objectKey) {
+        s3Client.doesObjectExist(s3ConfigurationProperties.bucket, objectKey)
+    }
+
+    private void handleMessage(String key, File file, Command command) {
         Message<?> message = MessageBuilder.withPayload(file)
                 .setHeader('s3Command', command)
                 .build()
 
-        def messageHandler = new S3MessageHandler(s3Client, s3ConfigurationProperties.bucket)
-        messageHandler.command = command
+        def s3MessageHandler = new S3MessageHandler(s3Client, s3ConfigurationProperties.bucket)
+        s3MessageHandler.command = command
+        if (key) {
+            s3MessageHandler.keyExpression = new ValueExpression<>(key)
+        }
 
-        messageHandler.handleMessage(message)
+        s3MessageHandler.handleMessage(message)
     }
 }

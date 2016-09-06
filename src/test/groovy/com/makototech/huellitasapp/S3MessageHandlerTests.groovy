@@ -1,5 +1,6 @@
 package com.makototech.huellitasapp
 
+import com.amazonaws.services.s3.AmazonS3
 import com.makototech.huellitasapp.aws.s3.S3Service
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -21,7 +22,7 @@ import static org.hamcrest.core.IsEqual.equalTo
 @DirtiesContext
 class S3MessageHandlerTests {
 
-    private static final String FILENAME = "foo-${System.currentTimeMillis()}.txt"
+    private static final String FOLDER = "test/txt"
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder()
@@ -29,24 +30,70 @@ class S3MessageHandlerTests {
     @Autowired
     private S3Service s3Service
 
+    @Autowired
+    private AmazonS3 s3Client
+
     @Test
-    void sendingMessagesToAmazonS3() {
-        File file = temporaryFolder.newFile(FILENAME)
-        file << 'Working with files the Groovy way is easy.\n'
-        def originalContent = file.readLines()
+    void sendFile() {
+        def filename = "foo-${UUID.randomUUID()}.txt"
+
+        boolean fileExists = s3Service.doesFileExists(filename)
+        assertThat(fileExists, Matchers.is(false))
+
+        def fileToUpload = temporaryFolder.newFile(filename)
+        fileToUpload << 'Working with files the Groovy way is easy.\n'
+
+        def originalContent = fileToUpload.readLines()
         assertThat(originalContent, hasSize(greaterThan(0)))
 
-        s3Service.uploadFile(file)
+        s3Service.uploadFile(fileToUpload)
 
-        File tempFolder = temporaryFolder.newFolder()
-        File destination = new File(tempFolder, FILENAME)
+        fileExists = s3Service.doesFileExists(filename)
+        assertThat(fileExists, Matchers.is(true))
 
+        def destination = new File(temporaryFolder.newFolder(), filename)
         s3Service.downloadFile(destination)
 
         def downloadedContent = destination.readLines()
         assertThat(downloadedContent, hasSize(greaterThan(0)))
         assertThat(originalContent, Matchers.is(equalTo(downloadedContent)))
 
-        s3Service.deleteFile(FILENAME)
+        // NOTE: Comment the lines until the end of this tests to keep files in the S3 bucket.
+        s3Service.deleteFile(filename)
+
+        fileExists = s3Service.doesFileExists(filename)
+        assertThat(fileExists, Matchers.is(false))
+    }
+
+    @Test
+    void sendFileWithKey() {
+        def objectKey = "${FOLDER}/foo-${UUID.randomUUID()}.txt"
+
+        boolean fileExists = s3Service.doesFileExists(objectKey)
+        assertThat(fileExists, Matchers.is(false))
+
+        def fileToUpload = temporaryFolder.newFile()
+        fileToUpload << 'Working with files the Groovy way is easy.\n'
+
+        def originalContent = fileToUpload.readLines()
+        assertThat(originalContent, hasSize(greaterThan(0)))
+
+        s3Service.uploadFile(objectKey, fileToUpload)
+
+        fileExists = s3Service.doesFileExists(objectKey)
+        assertThat(fileExists, Matchers.is(true))
+
+        def destination = temporaryFolder.newFile()
+        s3Service.downloadFile(objectKey, destination)
+
+        def downloadedContent = destination.readLines()
+        assertThat(downloadedContent, hasSize(greaterThan(0)))
+        assertThat(originalContent, Matchers.is(equalTo(downloadedContent)))
+
+        // NOTE: Comment the lines until the end of this tests to keep files in the S3 bucket.
+        s3Service.deleteFile(objectKey)
+
+        fileExists = s3Service.doesFileExists(objectKey)
+        assertThat(fileExists, Matchers.is(false))
     }
 }
