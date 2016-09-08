@@ -51,6 +51,11 @@ class S3ServiceImpl implements S3Service {
         s3Client.doesObjectExist(s3ConfigurationProperties.bucket, objectKey)
     }
 
+    @Override
+    String getUrl(String objectKey) {
+        s3Client.getUrl(s3ConfigurationProperties.bucket, objectKey)
+    }
+
     private void handleMessage(String key, File file, Command command) {
         Message<?> message = MessageBuilder.withPayload(file)
                 .setHeader('s3Command', command)

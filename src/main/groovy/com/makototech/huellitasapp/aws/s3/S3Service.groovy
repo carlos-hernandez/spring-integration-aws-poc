@@ -13,4 +13,6 @@ interface S3Service {
     void deleteFile(String objectKey)
 
     boolean doesFileExists(String objectKey)
+
+    String getUrl(String objectKey)
 }

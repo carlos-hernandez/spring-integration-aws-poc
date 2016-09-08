@@ -14,8 +14,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.greaterThan
+import static org.hamcrest.Matchers.not
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize
 import static org.hamcrest.core.IsEqual.equalTo
+import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString
 
 @RunWith(SpringJUnit4ClassRunner)
 @SpringApplicationConfiguration(classes = Application)
@@ -51,6 +53,9 @@ class S3MessageHandlerTests {
         fileExists = s3Service.doesFileExists(filename)
         assertThat(fileExists, Matchers.is(true))
 
+        def url = s3Service.getUrl(filename)
+        assertThat(url, not(isEmptyOrNullString()))
+
         def destination = new File(temporaryFolder.newFolder(), filename)
         s3Service.downloadFile(destination)
 
@@ -82,6 +87,9 @@ class S3MessageHandlerTests {
 
         fileExists = s3Service.doesFileExists(objectKey)
         assertThat(fileExists, Matchers.is(true))
+
+        def url = s3Service.getUrl(objectKey)
+        assertThat(url, not(isEmptyOrNullString()))
 
         def destination = temporaryFolder.newFile()
         s3Service.downloadFile(objectKey, destination)
