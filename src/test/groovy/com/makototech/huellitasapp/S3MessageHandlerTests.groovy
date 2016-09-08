@@ -8,9 +8,8 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.SpringApplicationConfiguration
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit4.SpringRunner
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.greaterThan
@@ -19,9 +18,8 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize
 import static org.hamcrest.core.IsEqual.equalTo
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString
 
-@RunWith(SpringJUnit4ClassRunner)
-@SpringApplicationConfiguration(classes = Application)
-@DirtiesContext
+@RunWith(SpringRunner)
+@SpringBootTest
 class S3MessageHandlerTests {
 
     private static final String FOLDER = "test/txt"
